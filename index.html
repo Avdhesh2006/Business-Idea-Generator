@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Business Idea Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Reset & Fonts */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(-45deg, #facc15, #3b82f6, #10b981, #ec4899);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #222;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 40px;
+      color: white;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
+
+    header img {
+      height: 60px;
+      margin-right: 15px;
+      filter: drop-shadow(0 0 5px white);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    header h1 {
+      font-size: 2.7rem;
+      margin: 0;
+    }
+
+    form {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      color: #fff;
+    }
+
+    label {
+      display: block;
+      margin-top: 20px;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1em;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      transition: 0.3s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.5);
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 14px 28px;
+      background: #111827;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background: #1f2937;
+      transform: scale(1.05);
+    }
+
+    #loading {
+      display: none;
+      text-align: center;
+      color: #fff;
+      margin-top: 20px;
+      font-weight: 600;
+    }
+
+    #result {
+      max-width: 700px;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      padding: 25px;
+      margin-top: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+      color: #fff;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="https://img.icons8.com/fluency/96/light-on--v1.png" alt="Light Logo">
+    <h1>Business Idea Generator</h1>
+  </header>
+
+  <form id="ideaForm">
+    <label for="category">Business Category:</label>
+    <select id="category" required>
+      <option value="">-- Choose a Category --</option>
+      <option value="Technology">Technology</option>
+      <option value="Health & Wellness">Health & Wellness</option>
+      <option value="Education">Education</option>
+      <option value="Green Solutions">Green Solutions</option>
+      <option value="Entertainment">Entertainment</option>
+      <option value="Food & Beverage">Food & Beverage</option>
+    </select>
+
+    <label for="interests">Your Interests (optional):</label>
+    <input type="text" id="interests" placeholder="e.g. AI, mobile apps, zero waste" />
+
+    <label for="targetAudience">Target Audience (optional):</label>
+    <textarea id="targetAudience" rows="3" placeholder="e.g. Gen Z, remote workers, pet lovers"></textarea>
+
+    <button type="submit">✨ Generate Idea</button>
+    <div id="loading">Generating a brilliant idea just for you...</div>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const API_KEY = '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'; // Replace with your actual API key
+    const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
+    document.getElementById('ideaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const category = document.getElementById('category').value;
+      const interests = document.getElementById('interests').value;
+      const targetAudience = document.getElementById('targetAudience').value;
+
+      const prompt = `Generate a unique and creative business idea in the "${category}" category. It should include elements of "${interests}" and appeal to the audience: "${targetAudience}".
+Include:
+- Business Name
+- Short Description
+- Target Audience
+- Key Features
+- Revenue Model`;
+
+      const requestBody = {
+        model: "mistralai/mixtral-8x7b-instruct",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.85,
+        max_tokens: 1024
+      };
+
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('result').textContent = '';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        const data = await response.json();
+        const resultText = data.choices?.[0]?.message?.content || 'No idea generated.';
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('result').textContent = resultText;
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('result').textContent = '🚫 Error generating idea. Try again!';
+      }
+    });
+  </script>
+
+</body>
+</html>
